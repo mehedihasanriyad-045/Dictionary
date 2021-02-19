@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:weightSum="8"
+    tools:context=".MainActivity"
+    >
+
+    <androidx.appcompat.widget.SearchView
+        android:id="@+id/search"
+        android:layout_weight="0.5"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:queryHint="Type your words"
+        android:iconifiedByDefault="false"
+        showAsAction="ifRoom|collapseActionView"/>
+
+
+    <View
+        android:layout_weight="0.01"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:background="#00c3ff"/>
+
+
+    <TextView
+        android:id="@+id/textshow"
+        android:layout_weight="7"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Hello World!"
+        android:gravity="top|center"
+        android:background="#ffffff"
+        android:textColor="@color/black"
+        android:paddingTop="30dp"/>
+
+    <TextView
+        android:layout_weight="0.49"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:text=" @ Copyright: Md. Mehedi Hasan Riyad! 2021 @"
+        android:textColor="@color/white"
+        android:gravity="center"
+        android:background="#00c3ff"/>
+
+</LinearLayout>
