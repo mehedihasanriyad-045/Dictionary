@@ -124,7 +124,11 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             if(max < num) max = num;
 
             engWord.add(currentDynamicKey);
-            bnWord.set( num,currentDynamicValue);
+            if(bnWord.get(num) == null){
+
+                bnWord.set( num,currentDynamicValue);
+
+            }
 
         }
         Log.d("searched", "onCreate: number "+ String.valueOf(max));
@@ -136,6 +140,9 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     @Override
     public boolean onQueryTextSubmit(String query) {
+
+        query = query.toLowerCase();
+
         try {
             searchWord(query);
         } catch (JSONException e) {
@@ -150,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
         int stringNum = string2Num(query);
         String result = bnWord.get(stringNum);
-        String match_str = engWord.get(stringNum);
+        //String match_str = engWord.get(stringNum);
         show.setText(result);
 
 
