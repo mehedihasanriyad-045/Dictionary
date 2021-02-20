@@ -30,8 +30,10 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     StringBuilder stringBuilder;
     ArrayList<String> engWord;
     ArrayList<String> bnWord;
-    long slotNo;
-    long q;
+    int slotNo;
+    int q;
+    String currentDynamicKey;
+    int num, max;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -75,10 +77,18 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             
             Iterator keys = jsonObject.keys();
             while(keys.hasNext()) {
-                String currentDynamicKey = (String)keys.next();
+                currentDynamicKey = (String)keys.next();
                 engWord.add(currentDynamicKey);
             }
+            for(int i = 0; i < currentDynamicKey.length(); i++){
 
+
+                int j = (int)currentDynamicKey.charAt(i);
+
+                int k = j % 100;
+
+                Log.d("searched", "onCreate: searched: "+ String.valueOf(k));
+            }
             slotNo = (engWord.size());
 
 
@@ -86,15 +96,17 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             e.printStackTrace();
         }
 
-        for(long i = 0; i < slotNo; i++){
+        for(int i = 0; i < slotNo; i++){
             bnWord.add(null);
         }
 
-        q = (long) (Math.random() * (slotNo - (slotNo-100000) + 1) + (slotNo-10000));
+        q = (int) ((Math.random() * (slotNo - 23)) + 23);
 
         while(!isPrime(q)){
-            q = (long) (Math.random() * (slotNo - (slotNo-100000) + 1) + (slotNo-10000));
+            q = (int) ((Math.random() * (slotNo - 23)) + 23);
         }
+
+        Log.d("searched", "onCreate: "+ q);
 
         Iterator keys = jsonObject.keys();
 
@@ -108,11 +120,14 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 e.printStackTrace();
             }
 
-            int num = string2Num(currentDynamicKey);
-            engWord.set(num,currentDynamicKey);
+            num = string2Num(currentDynamicKey);
+            if(max < num) max = num;
+
+            engWord.add(currentDynamicKey);
             bnWord.set( num,currentDynamicValue);
 
         }
+        Log.d("searched", "onCreate: number "+ String.valueOf(max));
 
 
 
@@ -147,19 +162,26 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
         for(int i = 0; i < txt.length(); i++){
 
-            p = (int) (((p * 256) + txt.charAt(i)) & q);
+            p = (int) (((p * 256) + (int)txt.charAt(i)) % q);
+
+            /*int  p1 = (int)txt.charAt(i);
+            int p2 =  p1 % q;
+            int p3 = (p * 256) % q;
+            p =  (p2 + p3) % q;*/
+
         }
 
         return p;
 
     }
 
-    private boolean isPrime(long q) {
+    private boolean isPrime(int q) {
 
         if( q % 2 == 0) return false;
-        for (long i = 3; i * i <= q; i++ ) {
+        for (int i = 3; i * i <= q; i++ ) {
             if(q % i == 0) return false;
         }
+        Log.d("isprime", "onCreate: "+ q);
         return true;
     }
 
