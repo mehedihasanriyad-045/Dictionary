@@ -18,7 +18,9 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 public class MainActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
@@ -27,13 +29,18 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     String str_data = "", strLine = "";
     SearchView searchView;
     JSONObject jsonObject;
-    StringBuilder stringBuilder;
     ArrayList<String> engWord;
     ArrayList<String> bnWord;
-    int slotNo;
+    int slotNo = 100000;
     int q;
+    int n;
     String currentDynamicKey;
-    int num, max;
+    int[][] hash_arr = new int[slotNo][3];
+    int[] collision = new int[slotNo];
+    int[] Xcollision = new int[slotNo];
+    //ArrayList<String>[][] secondaryBnWord;
+    String[][] secondaryBnWord ;
+    int collide = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,17 +49,24 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
         show = findViewById(R.id.textshow);
 
+        // Search View
         searchView = findViewById(R.id.search);
         searchView.onActionViewExpanded();
-
         searchView.setBackgroundColor(Color.TRANSPARENT);
         searchView.setPadding(2, 0, 0, 0);
         searchView.setGravity(Gravity.CENTER_VERTICAL);
-
         searchView.setOnQueryTextListener(this);
+
+        Arrays.fill(collision,0); //  Collision Array initialization //
+
+
+
+        // Two arraylist declared to catch the words
         engWord = new ArrayList<>();
         bnWord = new ArrayList<>();
 
+
+        //Json Object to String
 
         try {
             BufferedReader br = new BufferedReader(
@@ -72,41 +86,94 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         }
 
 
+
+        // array list for bangla meaning is initializes as null  value
+        for(int i = 0; i < slotNo; i++){
+
+            bnWord.add(null);
+
+        }
+
+        Log.d("slotNo", "onCreate: "+slotNo);
+
+        // selection of prime number q
+        q = (int) ((Math.random() * Math.pow(2,16))+1);
+
+        while(!isPrime(q)){
+            q = (int) ((Math.random() * Math.pow(2,16))+1);
+        }
+
+        //Log.d("searched", "onCreate: "+ q);
+
+        // To check collision number in each slots
         try {
             jsonObject = new JSONObject(str_data);
-            
             Iterator keys = jsonObject.keys();
             while(keys.hasNext()) {
-                currentDynamicKey = (String)keys.next();
+
+                String currentDynamicKey = (String)keys.next();
+                String currentDynamicValue = null;
+
+                currentDynamicValue = jsonObject.getString(currentDynamicKey);
+
+
+
+                int Newnum = string2Num(currentDynamicKey); // String to number conversation function call
+
+                int num = primaryHash(Newnum);
+
                 engWord.add(currentDynamicKey);
+
+                if(bnWord.get(num) == null){
+
+                    bnWord.set(num,currentDynamicValue);
+
+                }
+                collision[num]++;
+
+
             }
-            for(int i = 0; i < currentDynamicKey.length(); i++){
-
-
-                int j = (int)currentDynamicKey.charAt(i);
-
-                int k = j % 100;
-
-                Log.d("searched", "onCreate: searched: "+ String.valueOf(k));
-            }
-            slotNo = (engWord.size());
-
-
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
-        for(int i = 0; i < slotNo; i++){
-            bnWord.add(null);
+        // max collision number
+        Xcollision = collision;
+        Arrays.sort(Xcollision);
+        n = Xcollision[99999];
+        n = n*n;
+        secondaryBnWord =  new String[slotNo][n];
+
+        // collision wise determination of  m, a and b for second hash function
+
+        for(int i = 0; i < slotNo; i++)
+        {
+            int a = (int) ((Math.random() * (201 - 1)) + 1);
+            int b = (int) ((Math.random() * 201) + 0);
+            int len = collision[i] * collision[i];
+            hash_arr[i][0] = len;
+            hash_arr[i][1] = a;
+            hash_arr[i][2] = b;
         }
 
-        q = (int) ((Math.random() * (slotNo - 23)) + 23);
 
-        while(!isPrime(q)){
-            q = (int) ((Math.random() * (slotNo - 23)) + 23);
-        }
+        hashFunction();
 
-        Log.d("searched", "onCreate: "+ q);
+
+    }
+
+    private int primaryHash(int newnum) {
+
+        int a = (int) (Math.pow(2,15)+1);
+        int b = (int) Math.pow(2,15);
+        int mod = 98689;
+
+        return (((a*newnum) % mod ) + b ) % mod ;
+
+    }
+
+    private void hashFunction() {
+
 
         Iterator keys = jsonObject.keys();
 
@@ -120,23 +187,48 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 e.printStackTrace();
             }
 
-            num = string2Num(currentDynamicKey);
-            if(max < num) max = num;
+            int Newnum = string2Num(currentDynamicKey); // String to number conversation function call
 
-            engWord.add(currentDynamicKey);
-            if(bnWord.get(num) == null){
+            int num = primaryHash(Newnum);
+
+
+            if(collision[num] == 0){
 
                 bnWord.set( num,currentDynamicValue);
 
+
+
+
+            }
+            else {
+
+                int newNum = secondaryHash(num, hash_arr[num][1], hash_arr[num][2]);
+
+                if(secondaryBnWord[num][newNum] != null ){
+                    collide++;
+                    Log.d("second", "hashFunction: "+secondaryBnWord[num][newNum] +"when collide "+currentDynamicValue);
+                }
+                secondaryBnWord[num][newNum] = (currentDynamicValue);
+
             }
 
-        }
-        Log.d("searched", "onCreate: number "+ String.valueOf(max));
 
+        }
+        Log.d("second", "hashFunction: "+collide);
 
 
 
     }
+
+    private int secondaryHash(int i, int i1, int i2) {
+
+        int newNum;
+        int p1 = i * i1;
+        int p2 = p1 + i2;
+        newNum = p2 % q ;
+        return newNum % n;
+    }
+
 
     @Override
     public boolean onQueryTextSubmit(String query) {
@@ -154,11 +246,24 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     private void searchWord(String query) throws JSONException {
 
 
+        String result;
+        int num = string2Num(query);
 
-        int stringNum = string2Num(query);
-        String result = bnWord.get(stringNum);
-        //String match_str = engWord.get(stringNum);
+        int stringNum = primaryHash(num);
+        if(collision[stringNum] == 0){
+
+            result = bnWord.get(stringNum);
+
+        }
+        else {
+
+            int newNum = secondaryHash(stringNum, hash_arr[stringNum][1], hash_arr[stringNum][2]);
+
+            result = secondaryBnWord[stringNum][newNum];
+
+        }
         show.setText(result);
+
 
 
     }
@@ -166,15 +271,18 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     private int string2Num(String txt) {
 
         int p = 0;
-
+        txt = txt.toLowerCase();
+        int c;
         for(int i = 0; i < txt.length(); i++){
 
-            p = (int) (((p * 256) + (int)txt.charAt(i)) % q);
+            if(txt.charAt(i) >= 'a' && txt.charAt(i) <= 'z') {
 
-            /*int  p1 = (int)txt.charAt(i);
-            int p2 =  p1 % q;
-            int p3 = (p * 256) % q;
-            p =  (p2 + p3) % q;*/
+                c =  (txt.charAt(i) - 'a');
+                p = (p*26) % q;
+                p = (p + c) % q;
+
+            }
+
 
         }
 
@@ -188,7 +296,6 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         for (int i = 3; i * i <= q; i++ ) {
             if(q % i == 0) return false;
         }
-        Log.d("isprime", "onCreate: "+ q);
         return true;
     }
 
