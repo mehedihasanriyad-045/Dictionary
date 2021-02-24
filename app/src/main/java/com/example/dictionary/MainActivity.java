@@ -29,8 +29,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     String str_data = "", strLine = "";
     SearchView searchView;
     JSONObject jsonObject;
-    ArrayList<String> engWord;
-    ArrayList<String> bnWord;
+    ArrayList<Word> wordTry;
     int slotNo = 100000;
     int q;
     int n;
@@ -38,9 +37,8 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     int[][] hash_arr = new int[slotNo][3];
     int[] collision = new int[slotNo];
     int[] Xcollision = new int[slotNo];
-    //ArrayList<String>[][] secondaryBnWord;
-    String[][] secondaryBnWord ;
-    int collide = 0;
+    Word[][] secondaryWordTry ;
+    //int collide = 0;
     int x ;
     int y ;
 
@@ -65,8 +63,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         y = (int) (Math.random()*13);
 
         // Two arraylist declared to catch the words
-        engWord = new ArrayList<>();
-        bnWord = new ArrayList<>();
+        wordTry = new ArrayList<>();
 
 
         //Json Object to String
@@ -80,7 +77,6 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
                 strLine = br.readLine();
 
             }
-            //System.out.println(str_data);
             br.close();
         } catch (FileNotFoundException e) {
             System.err.println("File not found");
@@ -93,22 +89,23 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         // array list for bangla meaning is initializes as null  value
         for(int i = 0; i < slotNo; i++){
 
-            bnWord.add(null);
+            //bnWord.add(null);
+            Word word = new Word(null, null);
+            wordTry.add(word);
 
         }
 
         Log.d("slotNo", "onCreate: "+slotNo);
 
         // selection of prime number q
-        ///q = (int) ((Math.random() * Math.pow(2,16))+1);
+
         q = (int) ((Math.random() * slotNo)+1);
 
         while(!isPrime(q)){
             q = (int) ((Math.random() * slotNo)+1);
-            //q = (int) ((Math.random() * Math.pow(2,16))+1);
+
         }
 
-        //Log.d("searched", "onCreate: "+ q);
 
         // To check collision number in each slots
         try {
@@ -127,11 +124,13 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
                 int num = primaryHash(Newnum);
 
-                engWord.add(currentDynamicKey);
 
-                if(bnWord.get(num) == null){
+                Word word = wordTry.get(num);
 
-                    bnWord.set(num,currentDynamicValue);
+                if(word.getEnWord() == null){
+
+                    Word word1 = new Word(currentDynamicKey, currentDynamicValue);
+                    wordTry.set(num,word1);
 
                 }
                 collision[num]++;
@@ -147,7 +146,8 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         Arrays.sort(Xcollision);
         n = Xcollision[99999];
         n = n*n;
-        secondaryBnWord =  new String[slotNo][n];
+
+        secondaryWordTry = new Word[slotNo][n];
 
         // collision wise determination of  m, a and b for second hash function
 
@@ -169,9 +169,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     private int primaryHash(int newnum) {
 
-        //int a = (int) (Math.pow(2,15)+1);
-        //int b = (int) Math.pow(2,15);
-        //int a = (int) (Math.+1);
+
         int mod = 98689;
 
         return ((((x*newnum) % mod ) + y) % mod) % slotNo;
@@ -180,6 +178,14 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     private void hashFunction() {
 
+        // array list for bangla meaning is initializes as null  value
+        for(int i = 0; i < slotNo; i++){
+
+
+            Word word = new Word(null, null);
+            wordTry.add(word);
+
+        }
 
         Iterator keys = jsonObject.keys();
 
@@ -196,31 +202,32 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             int Newnum = string2Num(currentDynamicKey); // String to number conversation function call
 
             int num = primaryHash(Newnum);
-
+            currentDynamicKey = currentDynamicKey.toLowerCase();
 
             if(collision[num] == 0){
 
-                bnWord.set( num,currentDynamicValue);
-
-
-
+                //bnWord.set( num,currentDynamicValue);
+                Word word = new Word(currentDynamicKey, currentDynamicValue);
+                wordTry.set(num,word);
 
             }
             else {
 
                 int newNum = secondaryHash(num, hash_arr[num][1], hash_arr[num][2]);
 
-                if(secondaryBnWord[num][newNum] != null ){
+                /*if(secondaryWordTry[num][newNum] != null ){
                     collide++;
-                    Log.d("second", "hashFunction: "+secondaryBnWord[num][newNum] +"when collide "+currentDynamicValue);
+                    Log.d("second", "hashFunction: "+secondaryWordTry[num][newNum] +"when collide "+currentDynamicValue);
                 }
-                secondaryBnWord[num][newNum] = (currentDynamicValue);
+                //secondaryBnWord[num][newNum] = (currentDynamicValue);*/
 
+                Word word = new Word(currentDynamicKey, currentDynamicValue);
+                secondaryWordTry[num][newNum] = word;
             }
 
 
         }
-        Log.d("second", "hashFunction: "+collide);
+        //Log.d("second", "hashFunction: "+collide);
 
 
 
@@ -252,23 +259,43 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     private void searchWord(String query) throws JSONException {
 
 
-        String result;
+        String result,res;
+        query = query.toLowerCase();
         int num = string2Num(query);
 
         int stringNum = primaryHash(num);
+        Word word;
         if(collision[stringNum] == 0){
 
-            result = bnWord.get(stringNum);
+
+            word = wordTry.get(stringNum);
+            result = word.getBnWord();
+            res = word.getEnWord();
+
+            if(query.equals(res)){
+                show.setText(result);
+            }
+            else{
+                show.setText("Sorry! Not available!!");
+            }
 
         }
         else {
 
             int newNum = secondaryHash(stringNum, hash_arr[stringNum][1], hash_arr[stringNum][2]);
 
-            result = secondaryBnWord[stringNum][newNum];
+
+            word = secondaryWordTry[stringNum][newNum];
+            result = word.getBnWord();
+            res = word.getEnWord();
+            if(query.equals(res)){
+                show.setText(result);
+            }
+            else{
+                show.setText("Sorry! Not available!!");
+            }
 
         }
-        show.setText(result);
 
 
 
