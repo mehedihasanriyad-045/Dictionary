@@ -41,6 +41,8 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     //ArrayList<String>[][] secondaryBnWord;
     String[][] secondaryBnWord ;
     int collide = 0;
+    int x ;
+    int y ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,7 +61,8 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
         Arrays.fill(collision,0); //  Collision Array initialization //
 
-
+        x = (int) (Math.random()*13)+1;
+        y = (int) (Math.random()*13);
 
         // Two arraylist declared to catch the words
         engWord = new ArrayList<>();
@@ -97,10 +100,12 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         Log.d("slotNo", "onCreate: "+slotNo);
 
         // selection of prime number q
-        q = (int) ((Math.random() * Math.pow(2,16))+1);
+        ///q = (int) ((Math.random() * Math.pow(2,16))+1);
+        q = (int) ((Math.random() * slotNo)+1);
 
         while(!isPrime(q)){
-            q = (int) ((Math.random() * Math.pow(2,16))+1);
+            q = (int) ((Math.random() * slotNo)+1);
+            //q = (int) ((Math.random() * Math.pow(2,16))+1);
         }
 
         //Log.d("searched", "onCreate: "+ q);
@@ -148,8 +153,8 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
         for(int i = 0; i < slotNo; i++)
         {
-            int a = (int) ((Math.random() * (201 - 1)) + 1);
-            int b = (int) ((Math.random() * 201) + 0);
+            int a = (int) ((Math.random() * (n - 1)) + 1);
+            int b = (int) ((Math.random() * n) );
             int len = collision[i] * collision[i];
             hash_arr[i][0] = len;
             hash_arr[i][1] = a;
@@ -164,11 +169,12 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
     private int primaryHash(int newnum) {
 
-        int a = (int) (Math.pow(2,15)+1);
-        int b = (int) Math.pow(2,15);
+        //int a = (int) (Math.pow(2,15)+1);
+        //int b = (int) Math.pow(2,15);
+        //int a = (int) (Math.+1);
         int mod = 98689;
 
-        return (((a*newnum) % mod ) + b ) % mod ;
+        return ((((x*newnum) % mod ) + y) % mod) % slotNo;
 
     }
 
@@ -278,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             if(txt.charAt(i) >= 'a' && txt.charAt(i) <= 'z') {
 
                 c =  (txt.charAt(i) - 'a');
-                p = (p*26) % q;
+                p = (p*26);
                 p = (p + c) % q;
 
             }
