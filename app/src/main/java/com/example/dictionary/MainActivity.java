@@ -1,33 +1,31 @@
 package com.example.dictionary;
 
+import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SearchView;
-
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.Gravity;
-import android.view.inputmethod.EditorInfo;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
-
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 
-public class MainActivity extends AppCompatActivity implements SearchView.OnQueryTextListener {
+public class MainActivity extends AppCompatActivity  {
 
     TextView show;
     String str_data = "", strLine = "";
-    SearchView searchView;
+    EditText searchText;
+    ImageButton submit;
     JSONObject jsonObject;
     ArrayList<Word> wordTry;
     int slotNo = 104035;
@@ -50,12 +48,27 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         show = findViewById(R.id.textshow);
 
         // Search View
-        searchView = findViewById(R.id.search);
-        searchView.onActionViewExpanded();
-        searchView.setBackgroundColor(Color.TRANSPARENT);
-        searchView.setPadding(2, 0, 0, 0);
-        searchView.setGravity(Gravity.CENTER_VERTICAL);
-        searchView.setOnQueryTextListener(this);
+        searchText = findViewById(R.id.search);
+        searchText.setPadding(2, 0, 0, 0);
+        submit = findViewById(R.id.submit_btn);
+
+        ActionBar actionBar = getSupportActionBar();
+        ColorDrawable colorDrawable = new ColorDrawable(Color.parseColor("#37003c"));
+        actionBar.setBackgroundDrawable(colorDrawable);
+
+        submit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String query = searchText.getText().toString();
+                query = query.toLowerCase();
+
+                try {
+                    searchWord(query);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
 
         Arrays.fill(collision,0); //  Collision Array initialization //
 
@@ -243,7 +256,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     }
 
 
-    @Override
+    /*@Override
     public boolean onQueryTextSubmit(String query) {
 
         query = query.toLowerCase();
@@ -254,7 +267,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
             e.printStackTrace();
         }
         return false;
-    }
+    }*/
 
     private void searchWord(String query) throws JSONException {
 
@@ -332,7 +345,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         return true;
     }
 
-    @Override
+   /* @Override
     public boolean onQueryTextChange(String newText) {
         return false;
     }
@@ -340,5 +353,5 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     @Override
     public void onPointerCaptureChanged(boolean hasCapture) {
 
-    }
+    }*/
 }
