@@ -1,9 +1,11 @@
 package com.example.dictionary;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -33,13 +35,14 @@ public class MainActivity extends AppCompatActivity  {
     int n;
     String currentDynamicKey;
     int[][] hash_arr = new int[slotNo][3];
-    int[] collision = new int[slotNo];
-    int[] Xcollision = new int[slotNo];
+    int[] wordInSlot = new int[slotNo];
+    int[] XwordInSlot = new int[slotNo];
     Word[][] secondaryWordTry ;
-    //int collide = 0;
+    int collide = 0;
     int x ;
     int y ;
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,7 +73,7 @@ public class MainActivity extends AppCompatActivity  {
             }
         });
 
-        Arrays.fill(collision,0); //  Collision Array initialization //
+        Arrays.fill(wordInSlot,0); //  wordInSlot Array initialization //
 
         x = (int) (Math.random()*13)+1;
         y = (int) (Math.random()*13);
@@ -110,17 +113,11 @@ public class MainActivity extends AppCompatActivity  {
 
         Log.d("slotNo", "onCreate: "+slotNo);
 
-        // selection of prime number q
 
-        q = (int) ((Math.random() * slotNo)+1);
-
-        while(!isPrime(q)){
-            q = (int) ((Math.random() * slotNo)+1);
-
-        }
+        q = (int) (1e9+7);
 
 
-        // To check collision number in each slots
+        // To check wordInSlot number in each slots
         try {
             jsonObject = new JSONObject(str_data);
             Iterator keys = jsonObject.keys();
@@ -140,13 +137,13 @@ public class MainActivity extends AppCompatActivity  {
 
                 Word word = wordTry.get(num);
 
-                if(word.getEnWord() == null){
+                /*if(word.getEnWord() == null){
 
                     Word word1 = new Word(currentDynamicKey, currentDynamicValue);
                     wordTry.set(num,word1);
 
-                }
-                collision[num]++;
+                }*/
+                wordInSlot[num]++;
 
 
             }
@@ -154,21 +151,21 @@ public class MainActivity extends AppCompatActivity  {
             e.printStackTrace();
         }
 
-        // max collision number
-        Xcollision = collision;
-        Arrays.sort(Xcollision);
-        n = Xcollision[slotNo-1];
+        // max wordInSlot number
+        XwordInSlot = wordInSlot;
+        Arrays.sort(XwordInSlot);
+        n = XwordInSlot[slotNo-1];
         n = n*n;
 
         secondaryWordTry = new Word[slotNo][n];
 
-        // collision wise determination of  m, a and b for second hash function
+        // wordInSlot wise determination of  m, a and b for second hash function
 
         for(int i = 0; i < slotNo; i++)
         {
             int a = (int) ((Math.random() * (n - 1)) + 1);
             int b = (int) ((Math.random() * n) );
-            int len = collision[i] * collision[i];
+            int len = wordInSlot[i] * wordInSlot[i];
             hash_arr[i][0] = len;
             hash_arr[i][1] = a;
             hash_arr[i][2] = b;
@@ -180,15 +177,22 @@ public class MainActivity extends AppCompatActivity  {
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     private int primaryHash(int newnum) {
 
 
         int mod = 98689;
+        int p1 = Math.floorMod(x * newnum,q);
+        int p2 = Math.floorMod(p1+y,q);
+        int p = Math.floorMod(p2,slotNo);
 
-        return ((((x*newnum) % mod ) + y) % mod) % slotNo;
+
+
+        return p;
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     private void hashFunction() {
 
         // array list for bangla meaning is initializes as null  value
@@ -217,7 +221,7 @@ public class MainActivity extends AppCompatActivity  {
             int num = primaryHash(Newnum);
             currentDynamicKey = currentDynamicKey.toLowerCase();
 
-            if(collision[num] == 0){
+            if(wordInSlot[num] == 0){
 
                 //bnWord.set( num,currentDynamicValue);
                 Word word = new Word(currentDynamicKey, currentDynamicValue);
@@ -228,19 +232,20 @@ public class MainActivity extends AppCompatActivity  {
 
                 int newNum = secondaryHash(num, hash_arr[num][1], hash_arr[num][2]);
 
-                /*if(secondaryWordTry[num][newNum] != null ){
-                    collide++;
-                    Log.d("second", "hashFunction: "+secondaryWordTry[num][newNum] +"when collide "+currentDynamicValue);
-                }
-                //secondaryBnWord[num][newNum] = (currentDynamicValue);*/
 
+                collide++;
                 Word word = new Word(currentDynamicKey, currentDynamicValue);
                 secondaryWordTry[num][newNum] = word;
             }
 
 
         }
-        //Log.d("second", "hashFunction: "+collide);
+        int col = 0;
+        for(int i = 0; i < wordInSlot.length;i++)
+        {
+            col += wordInSlot[i];
+        }
+        Log.d("second", "hashFunction: "+collide+" "+col);
 
 
 
@@ -256,19 +261,9 @@ public class MainActivity extends AppCompatActivity  {
     }
 
 
-    /*@Override
-    public boolean onQueryTextSubmit(String query) {
 
-        query = query.toLowerCase();
 
-        try {
-            searchWord(query);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }*/
-
+    @RequiresApi(api = Build.VERSION_CODES.N)
     private void searchWord(String query) throws JSONException {
 
 
@@ -278,7 +273,7 @@ public class MainActivity extends AppCompatActivity  {
 
         int stringNum = primaryHash(num);
         Word word;
-        if(collision[stringNum] == 0){
+        if(wordInSlot[stringNum] == 0){
 
 
             word = wordTry.get(stringNum);
@@ -314,6 +309,7 @@ public class MainActivity extends AppCompatActivity  {
 
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     private int string2Num(String txt) {
 
         int p = 0;
@@ -324,8 +320,8 @@ public class MainActivity extends AppCompatActivity  {
             if(txt.charAt(i) >= 'a' && txt.charAt(i) <= 'z') {
 
                 c =  (txt.charAt(i) - 'a');
-                p = (p*26);
-                p = (p + c) % q;
+                p = Math.floorMod(p*26,q);
+                p = Math.floorMod(p + c,q);
 
             }
 
@@ -345,13 +341,5 @@ public class MainActivity extends AppCompatActivity  {
         return true;
     }
 
-   /* @Override
-    public boolean onQueryTextChange(String newText) {
-        return false;
-    }
 
-    @Override
-    public void onPointerCaptureChanged(boolean hasCapture) {
-
-    }*/
 }
