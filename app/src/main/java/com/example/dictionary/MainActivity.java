@@ -30,7 +30,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
     SearchView searchView;
     JSONObject jsonObject;
     ArrayList<Word> wordTry;
-    int slotNo = 100000;
+    int slotNo = 104035;
     int q;
     int n;
     String currentDynamicKey;
@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
 
         try {
             BufferedReader br = new BufferedReader(
-                    new InputStreamReader(getAssets().open("dictionary.json")));
+                    new InputStreamReader(getAssets().open("Dataset.json")));
             while (strLine != null)
             {
                 str_data += strLine;
@@ -144,7 +144,7 @@ public class MainActivity extends AppCompatActivity implements SearchView.OnQuer
         // max collision number
         Xcollision = collision;
         Arrays.sort(Xcollision);
-        n = Xcollision[99999];
+        n = Xcollision[slotNo-1];
         n = n*n;
 
         secondaryWordTry = new Word[slotNo][n];
