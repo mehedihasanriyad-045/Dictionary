@@ -128,21 +128,9 @@ public class MainActivity extends AppCompatActivity  {
 
                 currentDynamicValue = jsonObject.getString(currentDynamicKey);
 
-
-
                 int Newnum = string2Num(currentDynamicKey); // String to number conversation function call
-
                 int num = primaryHash(Newnum);
-
-
                 Word word = wordTry.get(num);
-
-                /*if(word.getEnWord() == null){
-
-                    Word word1 = new Word(currentDynamicKey, currentDynamicValue);
-                    wordTry.set(num,word1);
-
-                }*/
                 wordInSlot[num]++;
 
 
@@ -221,7 +209,7 @@ public class MainActivity extends AppCompatActivity  {
             int num = primaryHash(Newnum);
             currentDynamicKey = currentDynamicKey.toLowerCase();
 
-            if(wordInSlot[num] == 0){
+            if(wordInSlot[num] <= 1 ){
 
                 //bnWord.set( num,currentDynamicValue);
                 Word word = new Word(currentDynamicKey, currentDynamicValue);
@@ -273,7 +261,7 @@ public class MainActivity extends AppCompatActivity  {
 
         int stringNum = primaryHash(num);
         Word word;
-        if(wordInSlot[stringNum] == 0){
+        if(wordInSlot[stringNum] <= 1){
 
 
             word = wordTry.get(stringNum);
